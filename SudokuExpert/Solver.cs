@@ -19,22 +19,32 @@ namespace SudokuExpert
         }
 
         public List<SudokuItem> Items = new List<SudokuItem>();
-        public IEnumerable<SudokuItem> UnsolvedItems = new List<SudokuItem>();
+        private IEnumerable<SudokuItem> unsolvedItems = new List<SudokuItem>();
 
+        /// <summary>
+        /// Create all nedded (81) cells of the Sudoku field
+        /// </summary>
         private void create()
         {
             for (int i = 0; i <= 80; i++)
-            {
                 Items.Add(new SudokuItem(0, (byte)i));
-            }
         }
 
-        public SudokuItem ItemGet(byte Column, byte Row)
+        /// <summary>
+        /// Gets the cell from a specific column and row.
+        /// </summary>
+        /// <param name="Column"></param>
+        /// <param name="Row"></param>
+        /// <returns></returns>
+        public SudokuItem GetItem(byte Column, byte Row)
         {
             return Items.ElementAt((Row - 1) * 9 + Column - 1);
         }
 
-
+        /// <summary>
+        /// Delete all numbers from the item.possibleNumbers list which are solved in the block,row and column.
+        /// </summary>
+        /// <param name="item"></param>
         private void nackedSingle(SudokuItem item)
         {
             var rowItems = Items.Where(i => i.Row == item.Row && i.Value != 0);
@@ -50,6 +60,10 @@ namespace SudokuExpert
                 item.DeletePossibleNumber(bItem.Value);
         }
 
+        /// <summary>
+        /// Checks if just one value is possible in the specific row, column or block.
+        /// </summary>
+        /// <param name="item"></param>
         private void hiddenSingle(SudokuItem item)
         {
             for(byte number= 1; number <10; number++) // Run through all possible numbers
@@ -59,21 +73,6 @@ namespace SudokuExpert
                 var neededCells = Items.Where(i => i != item && (i.Row == item.Row || i.Column == item.Column || i.Block == item.Block));
                 if (item.IsSolved)
                     return;
-                if (neededCells.Any(i => i.Row == item.Row && i.Value == number)) // Check if some value is equal to the searched value(number)
-                {
-                    item.DeletePossibleNumber(number);
-                    continue;
-                }
-                if (neededCells.Any(i => i.Column == item.Column && i.Value == number)) // Check if some value is equal to the searched value(number)
-                {
-                    item.DeletePossibleNumber(number);
-                    continue;
-                }
-                if (neededCells.Any(i => i.Block == item.Block && i.Value == number)) // Check if some value is equal to the searched value(number)
-                {
-                    item.DeletePossibleNumber(number);
-                    continue;
-                }
 
                 if (!neededCells.Any(i => i.Row == item.Row && !i.IsSolved && i.ContainsPossibleNumber(number)))
                 {
@@ -95,20 +94,20 @@ namespace SudokuExpert
             if (item.IsSolved)
                 return;
 
-            var bitems = UnsolvedItems.Where(b => b.Block == item.Block && b.Value == 0);
+            var bitems = unsolvedItems.Where(b => b.Block == item.Block && b.Value == 0);
             nackedSubsetHelper(item, bitems);
 
-            bitems = UnsolvedItems.Where(b => b.Row == item.Row && b.Value == 0);
+            bitems = unsolvedItems.Where(b => b.Row == item.Row && b.Value == 0);
             nackedSubsetHelper(item, bitems);
 
-            bitems = UnsolvedItems.Where(b => b.Column == item.Column && b.Value == 0);
+            bitems = unsolvedItems.Where(b => b.Column == item.Column && b.Value == 0);
             nackedSubsetHelper(item, bitems);
         }
 
-        private void nackedSubsetHelper(SudokuItem item, IEnumerable<SudokuItem> bItems)
+        private void nackedSubsetHelper(SudokuItem item, IEnumerable<SudokuItem> sectionItems)
         {
-            var possibleElements = bItems.Where(b => b.PossibleNumbers.Count <= item.PossibleNumbers.Count);
-            if (possibleElements.Count() != item.PossibleNumbers.Count || possibleElements.Count() > 7 || possibleElements.Count() == bItems.Count())
+            var possibleElements = sectionItems.Where(b => b.PossibleNumbers.Count <= item.PossibleNumbers.Count);
+            if (possibleElements.Count() != item.PossibleNumbers.Count || possibleElements.Count() > 7 || possibleElements.Count() == sectionItems.Count())
                 return;
 
             foreach (var element in possibleElements)
@@ -128,14 +127,19 @@ namespace SudokuExpert
             // All elements accomplish the conditions
 
             // Delete the elements from bItems. To find out where we have to delete the possible Numbers
-            bItems = bItems.Where(b => !possibleElements.Contains(b));
+            sectionItems = sectionItems.Where(b => !possibleElements.Contains(b));
 
             // Delete the possible number
-            foreach (var b in bItems)
+            foreach (var b in sectionItems)
                 foreach (var pN in item.PossibleNumbers)
                     b.DeletePossibleNumber(pN);
         }
 
+        /// <summary>
+        /// Loads a File with a sudoku puzzle.
+        /// </summary>
+        /// <param name="filename"></param>
+        /// <param name="seperator"></param>
         public void LoadSudokuCSV(string filename, char seperator = ';')
         {
             if (!filename.EndsWith(".csv"))
@@ -144,7 +148,7 @@ namespace SudokuExpert
             using (FileStream fs = new FileStream(filename, FileMode.Open, FileAccess.Read))
             {
                 StreamReader r = new StreamReader(fs);
-                int i = -1;
+                int i = -1;                                 
                 while (r.Peek() != -1)
                 {
                     string line = r.ReadLine();
@@ -169,6 +173,9 @@ namespace SudokuExpert
             }
         }
 
+        /// <summary>
+        /// Draw the sudoku puzzle on the console.
+        /// </summary>
         public void ConsoleGrid()
         {
             for (int i = 0; i < Items.Count(); i++)
@@ -185,6 +192,10 @@ namespace SudokuExpert
             }
         }
 
+        /// <summary>
+        /// Higlights a specific text.
+        /// </summary>
+        /// <param name="text"></param>
         private void ConsoleHighlight(string text)
         {
             Console.ForegroundColor = ConsoleColor.Black;
@@ -193,7 +204,37 @@ namespace SudokuExpert
             Console.ResetColor();
         }
 
-        // TODO: HiddenSubset
+        // TODO: Test this!
+        private void hiddenSubset(IEnumerable<SudokuItem> sectionItems)
+        {
+            for (byte number = 1; number < 9; number++) // Go through all numbers
+            {
+                var contains = sectionItems.Where(i => i.ContainsPossibleNumber(number)); // save all cells who contains the number
+                var containsNot = sectionItems.Where(i => !i.ContainsPossibleNumber(number)); // save all cells who contains not the number
+                List<byte> pairList = new List<byte>(); // create a list to save the number who are a pair
+                pairList.Add(number);
+
+                for (byte pairNumber = number; pairNumber <= 9; pairNumber++) // go through the remaining number, to find a pair
+                {
+                    if (contains.All(c => c.ContainsPossibleNumber(pairNumber)) && !containsNot.Any(cn => cn.ContainsPossibleNumber(pairNumber)))
+                        pairList.Add(pairNumber); 
+                }
+
+                if (pairList.Count == contains.Count()) // If the count of pairs matches the count of cellsm then we had to do the final stuff
+                {
+                    
+                    foreach (var cell in contains) // Go through all cells (Who contains the pairs) and delete all numbers who are not equal to the pairs.
+                    {
+                        for (byte i = 1; i <= 9; i++)
+                        {
+                            if (!pairList.Exists(pl => pl == i))
+                                cell.DeletePossibleNumber(i);
+                        }
+                    }
+                }
+            }
+        }
+
 
         #region TestRegion
 #if DEBUG
@@ -202,7 +243,7 @@ namespace SudokuExpert
             while (true)
             {
                 SimpleSolveRotation();
-                if (!UnsolvedItems.Any())
+                if (!unsolvedItems.Any())
                     break;
             }
         }
@@ -210,24 +251,20 @@ namespace SudokuExpert
         public void SimpleSolveRotation()
         {
             int oldCount = 0;
-            UnsolvedItems = Items.Where(i => i.Value == 0);
+            unsolvedItems = Items.Where(i => i.Value == 0);
             do
             {
-                oldCount = UnsolvedItems.Count();
-                foreach (var item in UnsolvedItems)
+                oldCount = unsolvedItems.Count();
+                foreach (var item in unsolvedItems)
+                {
                     nackedSingle(item);
-                UnsolvedItems = UnsolvedItems.Where(i => i.Value == 0);
-            } while (UnsolvedItems.Count() != oldCount);
+                    hiddenSingle(item);
+                }
+                unsolvedItems = unsolvedItems.Where(i => i.Value == 0);
+            } while (unsolvedItems.Count() != oldCount);
 
-            foreach (var item in UnsolvedItems)
-                hiddenSingle(item);
-            UnsolvedItems = UnsolvedItems.Where(i => i.Value == 0);
-            if (oldCount != UnsolvedItems.Count())
-                return;
-
-            foreach (var item in UnsolvedItems)
+            foreach (var item in unsolvedItems)
                 nackedSubset(item);
-            UnsolvedItems = Items.Where(i => i.Value == 0);
             ConsoleGrid();
         }
 
@@ -238,11 +275,13 @@ namespace SudokuExpert
 
         public void nackedSubsetTest()
         {
-            UnsolvedItems = Items.Where(i => i.Value == 0);
+            unsolvedItems = Items.Where(i => i.Value == 0);
 
-            foreach (var item in UnsolvedItems)
+            foreach (var item in unsolvedItems)
                 nackedSubset(item);
         }
+
+        public void hiddenSubsetTest(IEnumerable<SudokuItem> sectionItem) => hiddenSubset(sectionItem);
 #endif
         #endregion
     }

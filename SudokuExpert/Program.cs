@@ -11,7 +11,7 @@ namespace SudokuExpert
         static void Main(string[] args)
         {
             Solver s = new Solver();
-            s.LoadSudokuCSV("test-002.csv");
+            s.LoadSudokuCSV("test-005.csv");
             s.ConsoleGrid();
             Console.WriteLine();
             s.SimpleSolve();
