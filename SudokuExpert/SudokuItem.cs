@@ -98,7 +98,7 @@ namespace SudokuExpert
         /// </summary>
         /// <param name="number">The number.</param>
         /// <returns></returns>
-        public bool GotPossibleNumber(byte number)
+        public bool ContainsPossibleNumber(byte number)
         {
             return PossibleNumbers.Exists(x => x == number);
         }
@@ -134,6 +134,8 @@ namespace SudokuExpert
 
         public void DeletePossibleNumber(byte number)
         {
+            if (IsSolved)
+                return;
             if (PossibleNumbers.Remove(number))
                 checkPossibleNumbers();
         }

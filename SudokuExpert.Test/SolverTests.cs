@@ -23,6 +23,7 @@ namespace SudokuExpert.Test
             s.NackedSingle(s.ItemGet(5, 4));
             Assert.AreEqual(9, s.ItemGet(5, 4).Value);
         }
+
         public int getIndex(int c, int r)
         {
             return (r - 1) * 9 + c - 1;
@@ -36,7 +37,7 @@ namespace SudokuExpert.Test
             s.ItemGet(5, 5).Value = 2;
             s.ItemGet(5, 6).Value = 3;
             s.ItemGet(6, 8).Value = 1;
-            s.SolveRotation();
+            s.SimpleSolveRotation();
             Assert.AreEqual(1, s.ItemGet(5, 4).Value);
             int[] check = new int[] { getIndex(4, 3), getIndex(5, 4), getIndex(5, 5), getIndex(5, 6), getIndex(6, 8) };
             for (int i = 0; i < s.Items.Count; i++)
@@ -56,7 +57,7 @@ namespace SudokuExpert.Test
             s.ItemGet(7, 2).Value = 1;
             s.ItemGet(1, 1).Value = 3;
             s.ItemGet(2, 1).Value = 2;
-            s.SolveRotation();
+            s.SimpleSolveRotation();
             Assert.AreEqual(1, s.ItemGet(3, 1).Value);
             int[] check = new int[] { getIndex(4, 3), getIndex(7, 2), getIndex(1, 1), getIndex(2, 1), getIndex(3, 1) };
             for (int i = 0; i < s.Items.Count; i++)
@@ -83,11 +84,72 @@ namespace SudokuExpert.Test
 
             s.nackedSubsetTest();
 
-            var testElements = s.Items.Where(i => i.Block == 5 && i != s.ItemGet(5,4) && i != s.ItemGet(4,6) && i != s.ItemGet(6,6));
+            var testElements = s.Items.Where(i => i.Block == 5 && i != s.ItemGet(5, 4) && i != s.ItemGet(4, 6) && i != s.ItemGet(6, 6));
             foreach (var element in testElements)
             {
-                if (element.GotPossibleNumber(1) || element.GotPossibleNumber(2) || element.GotPossibleNumber(3))
+                if (element.ContainsPossibleNumber(1) || element.ContainsPossibleNumber(2) || element.ContainsPossibleNumber(3))
                     Assert.Fail("The Test Failed" + element.ToString());
+            }
+        }
+
+        [TestMethod]
+        public void LoadSudokuCSV_ValidValues()
+        {
+            Solver s = new Solver();
+            s.LoadSudokuCSV("test-001.csv");
+
+        }
+
+        [TestMethod]
+        public void SimpleSolveRotation_ValidValues_EasyCase()
+        {
+            Solver s = new Solver();
+            s.LoadSudokuCSV("test-001.csv");
+            s.SimpleSolve();
+            findDoubles(s);
+        }
+
+        [TestMethod]
+        public void SimpleSolveRotation_ValidValues_MediumCase()
+        {
+            Solver s = new Solver();
+            s.LoadSudokuCSV("test-002.csv");
+            s.SimpleSolve();
+            findDoubles(s);
+        }
+
+        private static void findDoubles(Solver s)
+        {
+            for (int i = 1; i < 10; i++)
+            {
+                if (s.Items.Exists(si => si.Value == 0))
+                    Assert.Fail("Not Solved");
+                // Find doubles in Row
+                var row = s.Items.Where(si => si.Row == i);
+                for (int c = 1; c < 10; c++)
+                {
+                    var shouldCountOne = row.Where(sco => sco.Value == c);
+                    if (shouldCountOne.Count() > 1)
+                        Assert.Fail("Found Double" + shouldCountOne.ToString());
+                }
+
+                // Find doubles in Column
+                var column = s.Items.Where(si => si.Row == i);
+                for (int c = 1; c < 10; c++)
+                {
+                    var shouldCountOne = column.Where(sco => sco.Value == c);
+                    if (shouldCountOne.Count() > 1)
+                        Assert.Fail("Found Double" + shouldCountOne.ToString());
+                }
+
+                // Find doubles in Block
+                var block = s.Items.Where(si => si.Row == i);
+                for (int c = 1; c < 10; c++)
+                {
+                    var shouldCountOne = block.Where(sco => sco.Value == c);
+                    if (shouldCountOne.Count() > 1)
+                        Assert.Fail("Found Double" + shouldCountOne.ToString());
+                }
             }
         }
     }

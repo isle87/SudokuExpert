@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -50,39 +52,41 @@ namespace SudokuExpert
 
         private void hiddenSingle(SudokuItem item)
         {
-            if (item.IsSolved)
-                return;
-
-            var bitems = UnsolvedItems.Where(b => b.Block == item.Block && b.Value == 0);
-            hiddenSingleHelper(item, bitems);
-            bitems = UnsolvedItems.Where(b => b.Row == item.Row && b.Value == 0);
-            hiddenSingleHelper(item, bitems);
-            bitems = UnsolvedItems.Where(b => b.Column == item.Column && b.Value == 0);
-        }
-
-        private void hiddenSingleHelper(SudokuItem item, IEnumerable<SudokuItem> bitems)
-        {
-            bool found = false;
-            foreach (byte thisNumber in item.PossibleNumbers) // Durchlaufe die möglichen Zahlen
+            for(byte number= 1; number <10; number++) // Run through all possible numbers
             {
-                for (int i = 0; i < bitems.Count(); i++) // Durchlaufe alle Items im Bereich
+                if (!item.ContainsPossibleNumber(number))
+                    continue;
+                var neededCells = Items.Where(i => i != item && (i.Row == item.Row || i.Column == item.Column || i.Block == item.Block));
+                if (item.IsSolved)
+                    return;
+                if (neededCells.Any(i => i.Row == item.Row && i.Value == number)) // Check if some value is equal to the searched value(number)
                 {
-                    if (bitems.ElementAt(i) == item && bitems.Count() - 1 != i)
-                        continue;
-                    if (bitems.ElementAt(i).GotPossibleNumber(thisNumber)) // Enthält das Element die mögliche Zahl?
-                    {
-                        found = true;
-                        break;
-                    }
-                    else if (i == bitems.Count() - 1)
-                        item.Value = thisNumber;
-                }
-                if (found)
-                {
-                    found = false;
+                    item.DeletePossibleNumber(number);
                     continue;
                 }
-                break;
+                if (neededCells.Any(i => i.Column == item.Column && i.Value == number)) // Check if some value is equal to the searched value(number)
+                {
+                    item.DeletePossibleNumber(number);
+                    continue;
+                }
+                if (neededCells.Any(i => i.Block == item.Block && i.Value == number)) // Check if some value is equal to the searched value(number)
+                {
+                    item.DeletePossibleNumber(number);
+                    continue;
+                }
+
+                if (!neededCells.Any(i => i.Row == item.Row && !i.IsSolved && i.ContainsPossibleNumber(number)))
+                {
+                    item.Value = number;
+                }
+                if (!neededCells.Any(i => i.Column == item.Column && !i.IsSolved && i.ContainsPossibleNumber(number)))
+                {
+                    item.Value = number;
+                }
+                if (!neededCells.Any(i => i.Block == item.Block && !i.IsSolved && i.ContainsPossibleNumber(number)))
+                {
+                    item.Value = number;
+                }
             }
         }
 
@@ -115,7 +119,7 @@ namespace SudokuExpert
                 int MissCount = 0; //Counts if something doesn't fit
                 foreach (var number in item.PossibleNumbers)
                 {
-                    if (!(element.GotPossibleNumber(number)))
+                    if (!(element.ContainsPossibleNumber(number)))
                         MissCount++;
                     if (MissCount + element.PossibleNumbers.Count() > item.PossibleNumbers.Count)
                         return;
@@ -132,19 +136,99 @@ namespace SudokuExpert
                     b.DeletePossibleNumber(pN);
         }
 
+        public void LoadSudokuCSV(string filename, char seperator = ';')
+        {
+            if (!filename.EndsWith(".csv"))
+                throw new Exception("This is not a CSV file!");
+
+            using (FileStream fs = new FileStream(filename, FileMode.Open, FileAccess.Read))
+            {
+                StreamReader r = new StreamReader(fs);
+                int i = -1;
+                while (r.Peek() != -1)
+                {
+                    string line = r.ReadLine();
+                    for (int j = 0; j < line.Length; j++)
+                    {
+                        if (line[j] == seperator)
+                        {
+                            if (j == line.Length - 1)
+                                i++;
+                            else if (j + 1 < line.Length && line[j + 1] == seperator)
+                                i += j == 0 ? 2 : 1;
+                            else if (j == 0)
+                                i++;
+                            continue;
+                        }
+                        else
+                            i++;
+
+                        Items[i].Value = Convert.ToByte(char.GetNumericValue(line[j]));
+                    }
+                }
+            }
+        }
+
+        public void ConsoleGrid()
+        {
+            for (int i = 0; i < Items.Count(); i++)
+            {
+                Console.Write(" {0} ", Items[i].Value == 0? "-" : Items[i].Value.ToString());
+                if ((i + 1) % 3 == 0)
+                    Console.Write("|");
+                if ((i + 1) % 9 == 0)
+                {
+                    Console.WriteLine();
+                }
+                if ((i + 1) % 27 == 0)
+                    Console.WriteLine(new string('-', 30));
+            }
+        }
+
+        private void ConsoleHighlight(string text)
+        {
+            Console.ForegroundColor = ConsoleColor.Black;
+            Console.BackgroundColor = ConsoleColor.White;
+            Console.Write(text);
+            Console.ResetColor();
+        }
+
         // TODO: HiddenSubset
 
         #region TestRegion
 #if DEBUG
-        public void SolveRotation()
+        public void SimpleSolve()
         {
-            UnsolvedItems = Items.Where(i => i.Value == 0);
+            while (true)
+            {
+                SimpleSolveRotation();
+                if (!UnsolvedItems.Any())
+                    break;
+            }
+        }
 
-            foreach (var item in UnsolvedItems)
-                nackedSingle(item);
+        public void SimpleSolveRotation()
+        {
+            int oldCount = 0;
+            UnsolvedItems = Items.Where(i => i.Value == 0);
+            do
+            {
+                oldCount = UnsolvedItems.Count();
+                foreach (var item in UnsolvedItems)
+                    nackedSingle(item);
+                UnsolvedItems = UnsolvedItems.Where(i => i.Value == 0);
+            } while (UnsolvedItems.Count() != oldCount);
 
             foreach (var item in UnsolvedItems)
                 hiddenSingle(item);
+            UnsolvedItems = UnsolvedItems.Where(i => i.Value == 0);
+            if (oldCount != UnsolvedItems.Count())
+                return;
+
+            foreach (var item in UnsolvedItems)
+                nackedSubset(item);
+            UnsolvedItems = Items.Where(i => i.Value == 0);
+            ConsoleGrid();
         }
 
         public void NackedSingle(SudokuItem item)
