@@ -201,5 +201,22 @@ namespace SudokuExpert.Test
             Assert.IsTrue(s.GetItem(3, 3).PossibleNumbers.Contains(4));
 
         }
+
+        [TestMethod]
+        public void BlockLineInteraction_ValidValues()
+        {
+            Solver s = new Solver();
+            s.GetItem(1, 1).Value = 1;
+            s.GetItem(3, 1).Value = 2;
+            s.GetItem(1, 3).Value = 3;
+            s.GetItem(3, 3).Value = 4;
+            s.GetItem(4, 2).Value = 9;
+            for (byte i = 1; i < 4; i++)
+                s.GetItem(i, 2).RemovePossibleNumber(9);
+            s.BlockLineInteractionTest();
+
+            if (s.Items.Any(i => i.Column == 2 && i.Block != 1 && i.ContainsPossibleNumber(9)))
+                Assert.Fail();
+        }
     }
 }

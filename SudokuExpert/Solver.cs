@@ -75,17 +75,11 @@ namespace SudokuExpert
                     return;
 
                 if (!neededCells.Any(i => i.Row == item.Row && !i.IsSolved && i.ContainsPossibleNumber(number)))
-                {
                     item.Value = number;
-                }
                 if (!neededCells.Any(i => i.Column == item.Column && !i.IsSolved && i.ContainsPossibleNumber(number)))
-                {
                     item.Value = number;
-                }
                 if (!neededCells.Any(i => i.Block == item.Block && !i.IsSolved && i.ContainsPossibleNumber(number)))
-                {
                     item.Value = number;
-                }
             }
         }
 
@@ -206,38 +200,43 @@ namespace SudokuExpert
 
         private void HiddenSubset()
         {
-            for (int block = 1; block < 10; block++) // Go through all blocks
+            for (int block = 1; block < 10; block++) // Go through all blocks/rows/columns
             {
-                var sectionItems = Items.Where(i => i.Block == block);
-                for (byte number = 1; number < 9; number++) // Go through all numbers
+                HiddenSubsetHelper(Items.Where(i => i.Block == block));
+                HiddenSubsetHelper(Items.Where(i => i.Row == block));
+                HiddenSubsetHelper(Items.Where(i => i.Column == block));
+            }
+        }
+
+        private void HiddenSubsetHelper(IEnumerable<SudokuItem> sectionItems)
+        {
+            for (byte number = 1; number < 9; number++) // Go through all numbers
+            {
+                var contains = sectionItems.Where(i => i.ContainsPossibleNumber(number)); // save all cells who contains the number
+                var containsNot = sectionItems.Where(i => !i.ContainsPossibleNumber(number)); // save all cells who contains not the number
+                List<byte> pairList = new List<byte> { number }; // create a list to save the number who are a pair
+
+                for (byte pairNumber = (byte)(number + 1); pairNumber <= 9; pairNumber++) // go through the remaining number, to find a pair
                 {
-                    var contains = sectionItems.Where(i => i.ContainsPossibleNumber(number)); // save all cells who contains the number
-                    var containsNot = sectionItems.Where(i => !i.ContainsPossibleNumber(number)); // save all cells who contains not the number
-                    List<byte> pairList = new List<byte> { number }; // create a list to save the number who are a pair
+                    if (contains.All(c => c.ContainsPossibleNumber(pairNumber)) && !containsNot.Any(cn => cn.ContainsPossibleNumber(pairNumber)))
+                        pairList.Add(pairNumber);
+                }
 
-                    for (byte pairNumber = (byte)(number + 1); pairNumber <= 9; pairNumber++) // go through the remaining number, to find a pair
+                // If the count of pairs matches the count of cells then we had to do the final stuff
+                if (pairList.Count == contains.Count() && pairList.Count < 8 && pairList.Count > 1)
+                {
+                    foreach (var cell in contains) // Go through all cells (Who contains the pairs) and delete all numbers who are NOT equal to the pairs.
                     {
-                        if (contains.All(c => c.ContainsPossibleNumber(pairNumber)) && !containsNot.Any(cn => cn.ContainsPossibleNumber(pairNumber)))
-                            pairList.Add(pairNumber);
-                    }
-
-                    // If the count of pairs matches the count of cells then we had to do the final stuff
-                    if (pairList.Count == contains.Count() && pairList.Count < 8 && pairList.Count > 1)
-                    {
-                        foreach (var cell in contains) // Go through all cells (Who contains the pairs) and delete all numbers who are NOT equal to the pairs.
+                        for (byte i = 1; i <= 9; i++)
                         {
-                            for (byte i = 1; i <= 9; i++)
-                            {
-                                if (!pairList.Exists(pl => pl == i))
-                                    cell.RemovePossibleNumber(i);
-                            }
+                            if (!pairList.Exists(pl => pl == i))
+                                cell.RemovePossibleNumber(i);
                         }
                     }
                 }
             }
         }
 
-        // TODO: TEST IT
         private void BlockLineInteraction()
         {
             for (int block = 1; block < 10; block++) // Go through all blocks
@@ -269,7 +268,6 @@ namespace SudokuExpert
             }
         }
 
-
         #region TestRegion
 #if DEBUG
         public void SimpleSolve()
@@ -294,6 +292,7 @@ namespace SudokuExpert
                     NackedSingle(item);
                     HiddenSingle(item);
                 }
+
                 unsolvedItems = unsolvedItems.Where(i => i.Value == 0);
             } while (unsolvedItems.Count() != oldCount);
 
@@ -306,8 +305,6 @@ namespace SudokuExpert
 
         public void NackedSubsetTest()
         {
-            unsolvedItems = Items.Where(i => i.Value == 0);
-
             foreach (var item in unsolvedItems)
                 NackedSubset(item);
         }
