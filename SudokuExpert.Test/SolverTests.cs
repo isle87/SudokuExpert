@@ -218,5 +218,63 @@ namespace SudokuExpert.Test
             if (s.Items.Any(i => i.Column == 2 && i.Block != 1 && i.ContainsPossibleNumber(9)))
                 Assert.Fail();
         }
+
+        [TestMethod]
+        public void BlockBlockInteraction_ValidValues_Vertical()
+        {
+            Solver s = new Solver();
+            s.GetItem(3, 1).Value = 1;
+            s.GetItem(3, 2).Value = 2;
+            s.GetItem(4, 3).Value = 9;
+            s.GetItem(3, 7).Value = 3;
+            s.GetItem(3, 8).Value = 4;
+            s.GetItem(4, 9).Value = 9;
+
+            /**
+             * - - 1| - - -| - - -| 
+             * - - 2| - - -| - - -|
+             * - - -| 9 - -| - - -|
+             * --------------------
+             * T T -| - - -| - - -|
+             * T T -| - - -| - - -|
+             * T T -| - - -| - - -|
+             * --------------------
+             * - - 3| - - -| - - -|
+             * - - 4| - - -| - - -|
+             * - - -| 9 - -| - - -|
+             * */
+            s.Items.ForEach(i => s.NackedSingleTest(i));
+            s.BlockBlockInteractionTest();
+            Assert.IsFalse(s.Items.Where(i => i.Block == 4 && i.Column < 3).Any(i => i.ContainsPossibleNumber(9)));
+        }
+
+        [TestMethod]
+        public void BlockBlockInteraction_ValidValues_Horizontal()
+        {
+            Solver s = new Solver();
+            s.GetItem(1, 7).Value = 1;
+            s.GetItem(2, 7).Value = 2;
+            s.GetItem(3, 6).Value = 9;
+            s.GetItem(7, 7).Value = 3;
+            s.GetItem(8, 7).Value = 4;
+            s.GetItem(9, 4).Value = 9;
+
+            /**
+             * - - -| - - -| - - -| 
+             * - - -| - - -| - - -|
+             * - - -| - - -| - - -|
+             * --------------------
+             * - - -| - - -| - - 9|
+             * - - -| - - -| - - -|
+             * - - 9| - - -| - - -|
+             * --------------------
+             * 1 2 -| - - -| 3 4 -|
+             * - - -| T T T| - - -|
+             * - - -| T T T| - - -|
+             * */
+            s.Items.ForEach(i => s.NackedSingleTest(i));
+            s.BlockBlockInteractionTest();
+            Assert.IsFalse(s.Items.Where(i => i.Block == 8 && i.Row > 7).Any(i => i.ContainsPossibleNumber(9)));
+        }
     }
 }

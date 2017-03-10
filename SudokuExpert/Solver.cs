@@ -264,7 +264,73 @@ namespace SudokuExpert
                         }
                     }
                 }
+            }
+        }
 
+        private void BlockBlockInteractions()
+        {
+            for (byte index = 1; index < 9; index++)
+            {
+                for (byte block = 1; block < 7; block++)
+                {
+                    if (block > 3) block = 6;
+                    if (index + block > 10) continue;
+                    BlockBlockInteractionsHelper(index, (byte)(index + block));
+                }
+            }
+        }
+
+        // ??
+        private void BlockBlockInteractionsHelper(byte primaryBlock, byte secondaryBlock)
+        {
+            bool IsRow = (secondaryBlock - primaryBlock) < 3;
+            byte min = IsRow ? Items.Where(s => s.Block == primaryBlock).Min(s => s.Row) : Items.Where(s => s.Block == primaryBlock).Min(s => s.Column);
+
+            List<List<SudokuItem>> blockA = new List<List<SudokuItem>>();
+            List<List<SudokuItem>> blockB = new List<List<SudokuItem>>();
+
+            for (byte i = min; i < min + 3; i++)
+            {
+                if (IsRow)
+                {
+                    blockA.Add(new List<SudokuItem>(Items.Where(s => s.Row == i && s.Block == primaryBlock)));
+                    blockB.Add(new List<SudokuItem>(Items.Where(s => s.Row == i && s.Block == secondaryBlock)));
+                }
+                else
+                {
+                    blockA.Add(new List<SudokuItem>(Items.Where(s => s.Column == i && s.Block == primaryBlock)));
+                    blockB.Add(new List<SudokuItem>(Items.Where(s => s.Column == i && s.Block == secondaryBlock)));
+                }
+                // Now we got a list who it is irrelevant if we use a column or a row.
+            }
+
+            for (byte number = 1; number < 10; number++)
+            {
+                try
+                {
+                    List<SudokuItem> a = blockA.Single(s => !s.Any(e => e.ContainsPossibleNumber(number) || e.Value == number));
+                    List<SudokuItem> b = blockB.Single(s => !s.Any(e => e.ContainsPossibleNumber(number) || e.Value == number));
+                    if (blockA.IndexOf(a) == blockB.IndexOf(b))
+                    {
+                        for (byte i = min; i < min + 3; i++)
+                        {
+                            if (IsRow && i != a.ElementAt(0).Row)
+                            {
+                                foreach (var item in Items.Where(s => s.Row == i && !(s.Block == primaryBlock || s.Block == secondaryBlock)))
+                                    item.RemovePossibleNumber(number);
+                            }
+                            if (!IsRow && i != a.ElementAt(0).Column)
+                            {
+                                foreach (var item in Items.Where(s => s.Column == i && !(s.Block == primaryBlock || s.Block == secondaryBlock)))
+                                    item.RemovePossibleNumber(number);
+                            }
+                        }
+                    }
+                }
+                catch (InvalidOperationException)
+                {
+                    //No single found
+                }
             }
         }
 
@@ -312,6 +378,8 @@ namespace SudokuExpert
         public void HiddenSubsetTest() => HiddenSubset();
 
         public void BlockLineInteractionTest() => BlockLineInteraction();
+
+        public void BlockBlockInteractionTest() => BlockBlockInteractions();
 #endif
         #endregion
     }

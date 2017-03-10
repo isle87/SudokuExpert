@@ -11,20 +11,29 @@ namespace SudokuExpert
         static void Main(string[] args)
         {
             Solver s = new Solver();
-            var block = s.Items.Where(b => b.Block == 1);
-            foreach (var item in block)
-            {
-                if (item == s.GetItem(2, 1) || item == s.GetItem(3, 3))
-                    continue;
-                item.RemovePossibleNumber(1);
-                item.RemovePossibleNumber(4);
-                if (new Random().Next(0,1) == 1)
-                    item.RemovePossibleNumber((byte)(new Random().Next(5, 9)));
-                if (new Random().Next(0, 2) == 1)
-                    item.RemovePossibleNumber((byte)(new Random().Next(5, 9)));
-            }
+            s.GetItem(1, 7).Value = 1;
+            s.GetItem(2, 7).Value = 2;
+            s.GetItem(3, 6).Value = 9;
+            s.GetItem(7, 7).Value = 3;
+            s.GetItem(8, 7).Value = 4;
+            s.GetItem(9, 4).Value = 9;
 
-            s.HiddenSubsetTest();
+            /**
+             * - - -| - - -| - - -| 
+             * - - -| - - -| - - -|
+             * - - -| - - -| - - -|
+             * --------------------
+             * - - -| - - -| - - 9|
+             * - - -| - - -| - - -|
+             * - - 9| - - -| - - -|
+             * --------------------
+             * 1 2 -| - - -| 3 4 -|
+             * - - -| T T T| - - -|
+             * - - -| T T T| - - -|
+             * */
+            s.Items.ForEach(i => s.NackedSingleTest(i));
+            s.BlockBlockInteractionTest();
+            s.ConsoleGrid();
         }
 
         public static int GetIndex(int c, int r)
