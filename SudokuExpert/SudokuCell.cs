@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SudokuExpert
 {
-    public class SudokuItem
+    public class SudokuCell
     {
         private byte _Column;
 
@@ -14,18 +14,18 @@ namespace SudokuExpert
 
         private byte _Value;
 
-        public SudokuItem()
+        public SudokuCell()
         {
             SetUpPossibleNumbers();
         }
 
-        public SudokuItem(byte value, int index) : this()
+        public SudokuCell(byte value, int index) : this()
         {
             Value = value;
             SetColumnAndRow(index);
         }
 
-        public SudokuItem(byte value, byte column, byte row) : this()
+        public SudokuCell(byte value, byte column, byte row) : this()
         {
             Value = value;
             Row = row;

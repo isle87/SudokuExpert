@@ -11,29 +11,32 @@ namespace SudokuExpert
         static void Main(string[] args)
         {
             Solver s = new Solver();
-            s.GetItem(1, 7).Value = 1;
-            s.GetItem(2, 7).Value = 2;
-            s.GetItem(3, 6).Value = 9;
-            s.GetItem(7, 7).Value = 3;
-            s.GetItem(8, 7).Value = 4;
-            s.GetItem(9, 4).Value = 9;
+            for (byte i = 4; i < 10; i++)
+                s.GetItem(5, 4).RemovePossibleNumber(i);
+
+            for (byte i = 4; i < 10; i++)
+                s.GetItem(4, 6).RemovePossibleNumber(i);
+
+            for (byte i = 3; i < 10; i++) // Some special
+                s.GetItem(6, 6).RemovePossibleNumber(i);
 
             /**
-             * - - -| - - -| - - -| 
-             * - - -| - - -| - - -|
-             * - - -| - - -| - - -|
-             * --------------------
-             * - - -| - - -| - - 9|
-             * - - -| - - -| - - -|
-             * - - 9| - - -| - - -|
-             * --------------------
-             * 1 2 -| - - -| 3 4 -|
-             * - - -| T T T| - - -|
-             * - - -| T T T| - - -|
-             * */
-            s.Items.ForEach(i => s.NackedSingleTest(i));
-            s.BlockBlockInteractionTest();
-            s.ConsoleGrid();
+            * - - -| - - -| - - -| 
+            * - - -| - - -| - - -|
+            * - - -| - - -| - - -|
+            * --------------------
+            * - - -| - X -| - - -|
+            * - - -| X - -| - - -|
+            * - - -| - - X| - - -|
+            * --------------------
+            * - - -| - - -| - - -|
+            * - - -| - - -| - - -|
+            * - - -| - - -| - - -|
+            * */
+
+            s.NacketSubset();
+
+            var testElements = s.Cells.Where(i => i.Block == 5 && i != s.GetItem(5, 4) && i != s.GetItem(4, 6) && i != s.GetItem(6, 6));
         }
 
         public static int GetIndex(int c, int r)

@@ -51,7 +51,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="SolverTests.cs" />
-    <Compile Include="SudokuItemTest.cs" />
+    <Compile Include="SudokuCellTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

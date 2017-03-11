@@ -5,12 +5,12 @@ using SudokuExpert;
 namespace SudokuExpert.Test
 {
     [TestClass]
-    public class SudokuItemTest
+    public class SudokuCellTest
     {
         [TestMethod]
         public void Block_WithValidAmount_GetBlock()
         {
-            SudokuItem si = new SudokuItem();
+            SudokuCell si = new SudokuCell();
             si.Column = 4;
             si.Row = 7;
             byte expected = 8;
@@ -32,14 +32,14 @@ namespace SudokuExpert.Test
         [TestMethod] [ExpectedException(typeof(ArgumentOutOfRangeException))]
         public void Value_WithInvalidAmount()
         {
-            SudokuItem si = new SudokuItem();
+            SudokuCell si = new SudokuCell();
             si.Value = 16;
         }
 
         [TestMethod] [ExpectedException(typeof(ArgumentOutOfRangeException))]
         public void Row_WithInvalidAmount()
         {
-            SudokuItem si = new SudokuItem();
+            SudokuCell si = new SudokuCell();
             si.Row = 16;
         }
 
@@ -49,7 +49,7 @@ namespace SudokuExpert.Test
             int index = 80;
             byte eC = 9;
             byte eR = 9;
-            SudokuItem si = new SudokuItem();
+            SudokuCell si = new SudokuCell();
             si.SetColumnAndRow(index);
             Assert.AreEqual(eC, si.Column);
             Assert.AreEqual(eR, si.Row);
@@ -70,7 +70,7 @@ namespace SudokuExpert.Test
         [TestMethod]
         public void Index_ValidNumbers_CheckFormel()
         {
-            SudokuItem si = new SudokuItem();
+            SudokuCell si = new SudokuCell();
             byte c = 1;
             byte r = 1;
             byte e = 0;
