@@ -10,33 +10,17 @@ namespace SudokuExpert
     {
         static void Main(string[] args)
         {
-            Solver s = new Solver();
-            for (byte i = 4; i < 10; i++)
-                s.GetItem(5, 4).RemovePossibleNumber(i);
-
-            for (byte i = 4; i < 10; i++)
-                s.GetItem(4, 6).RemovePossibleNumber(i);
-
-            for (byte i = 3; i < 10; i++) // Some special
-                s.GetItem(6, 6).RemovePossibleNumber(i);
-
-            /**
-            * - - -| - - -| - - -| 
-            * - - -| - - -| - - -|
-            * - - -| - - -| - - -|
-            * --------------------
-            * - - -| - X -| - - -|
-            * - - -| X - -| - - -|
-            * - - -| - - X| - - -|
-            * --------------------
-            * - - -| - - -| - - -|
-            * - - -| - - -| - - -|
-            * - - -| - - -| - - -|
-            * */
-
-            s.NacketSubset();
-
-            var testElements = s.Cells.Where(i => i.Block == 5 && i != s.GetItem(5, 4) && i != s.GetItem(4, 6) && i != s.GetItem(6, 6));
+            Grid g = new Grid();
+            g.GetItem(5, 1).Value = 1;
+            g.GetItem(5, 2).Value = 2;
+            g.GetItem(3, 4).Value = 3;
+            g.GetItem(4, 4).Value = 4;
+            g.GetItem(4, 5).Value = 5;
+            g.GetItem(4, 6).Value = 6;
+            g.GetItem(5, 7).Value = 7;
+            g.GetItem(7, 4).Value = 8;
+            Solver s = new Solver(g);
+            s.NackedSingle(g.GetItem(5, 4));
         }
 
         public static int GetIndex(int c, int r)

@@ -10,7 +10,7 @@ namespace SudokuExpert.Test
         [TestMethod]
         public void Block_WithValidAmount_GetBlock()
         {
-            SudokuCell si = new SudokuCell();
+            Cell si = new Cell();
             si.Column = 4;
             si.Row = 7;
             byte expected = 8;
@@ -32,14 +32,14 @@ namespace SudokuExpert.Test
         [TestMethod] [ExpectedException(typeof(ArgumentOutOfRangeException))]
         public void Value_WithInvalidAmount()
         {
-            SudokuCell si = new SudokuCell();
+            Cell si = new Cell();
             si.Value = 16;
         }
 
         [TestMethod] [ExpectedException(typeof(ArgumentOutOfRangeException))]
         public void Row_WithInvalidAmount()
         {
-            SudokuCell si = new SudokuCell();
+            Cell si = new Cell();
             si.Row = 16;
         }
 
@@ -49,7 +49,7 @@ namespace SudokuExpert.Test
             int index = 80;
             byte eC = 9;
             byte eR = 9;
-            SudokuCell si = new SudokuCell();
+            Cell si = new Cell();
             si.SetColumnAndRow(index);
             Assert.AreEqual(eC, si.Column);
             Assert.AreEqual(eR, si.Row);
@@ -70,7 +70,7 @@ namespace SudokuExpert.Test
         [TestMethod]
         public void Index_ValidNumbers_CheckFormel()
         {
-            SudokuCell si = new SudokuCell();
+            Cell si = new Cell();
             byte c = 1;
             byte r = 1;
             byte e = 0;

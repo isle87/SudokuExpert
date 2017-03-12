@@ -11,17 +11,18 @@ namespace SudokuExpert.Test
         [TestMethod]
         public void NakedSingle_ValidTest()
         {
-            Solver s = new Solver();
-            s.GetItem(5, 1).Value = 1;
-            s.GetItem(5, 2).Value = 2;
-            s.GetItem(3, 4).Value = 3;
-            s.GetItem(4, 4).Value = 4;
-            s.GetItem(4, 5).Value = 5;
-            s.GetItem(4, 6).Value = 6;
-            s.GetItem(5, 7).Value = 7;
-            s.GetItem(7, 4).Value = 8;
-            s.NackedSingle(s.GetItem(5, 4));
-            Assert.AreEqual(9, s.GetItem(5, 4).Value);
+            Grid g = new Grid();
+            g.GetItem(5, 1).Value = 1;
+            g.GetItem(5, 2).Value = 2;
+            g.GetItem(3, 4).Value = 3;
+            g.GetItem(4, 4).Value = 4;
+            g.GetItem(4, 5).Value = 5;
+            g.GetItem(4, 6).Value = 6;
+            g.GetItem(5, 7).Value = 7;
+            g.GetItem(7, 4).Value = 8;
+            Solver s = new Solver(g);
+            s.NackedSingle(g.GetItem(5, 4));
+            Assert.AreEqual(9, g.GetItem(5, 4).Value);
         }
 
         public int GetIndex(int c, int r)
@@ -32,55 +33,57 @@ namespace SudokuExpert.Test
         [TestMethod]
         public void HiddenSingle_BlockValidTest_IncludeNackedTest()
         {
-            Solver s = new Solver();
-            s.GetItem(4, 3).Value = 1;
-            s.GetItem(5, 5).Value = 2;
-            s.GetItem(5, 6).Value = 3;
-            s.GetItem(6, 8).Value = 1;
+            Grid g = new Grid();
+            g.GetItem(4, 3).Value = 1;
+            g.GetItem(5, 5).Value = 2;
+            g.GetItem(5, 6).Value = 3;
+            g.GetItem(6, 8).Value = 1;
+            Solver s = new Solver(g);
             s.SimpleSolveRotation();
-            Assert.AreEqual(1, s.GetItem(5, 4).Value);
+            Assert.AreEqual(1, g.GetItem(5, 4).Value);
             int[] check = new int[] { GetIndex(4, 3), GetIndex(5, 4), GetIndex(5, 5), GetIndex(5, 6), GetIndex(6, 8) };
-            for (int i = 0; i < s.Cells.Count; i++)
+            for (int i = 0; i < g.Count(); i++)
             {
                 if (check.Contains(i))
                     continue;
                 else
-                    Assert.AreEqual(0, s.Cells[i].Value, s.Cells[i].ToString());
+                    Assert.AreEqual(0, g.GetItem(i).Value, g.GetItem(i).ToString());
             }
         }
 
         [TestMethod]
         public void HiddenSingle_RowValidTest_IncludeNackedTest()
         {
-            Solver s = new Solver();
-            s.GetItem(4, 3).Value = 1;
-            s.GetItem(7, 2).Value = 1;
-            s.GetItem(1, 1).Value = 3;
-            s.GetItem(2, 1).Value = 2;
+            Grid g = new Grid();
+            g.GetItem(4, 3).Value = 1;
+            g.GetItem(7, 2).Value = 1;
+            g.GetItem(1, 1).Value = 3;
+            g.GetItem(2, 1).Value = 2;
+            Solver s = new Solver(g);
             s.SimpleSolveRotation();
-            Assert.AreEqual(1, s.GetItem(3, 1).Value);
+            Assert.AreEqual(1, g.GetItem(3, 1).Value);
             int[] check = new int[] { GetIndex(4, 3), GetIndex(7, 2), GetIndex(1, 1), GetIndex(2, 1), GetIndex(3, 1) };
-            for (int i = 0; i < s.Cells.Count; i++)
+            for (int i = 0; i < g.Count(); i++)
             {
                 if (check.Contains(i))
                     continue;
                 else
-                    Assert.AreEqual(0, s.Cells[i].Value, s.Cells[i].ToString());
+                    Assert.AreEqual(0, g.GetItem(i).Value, g.GetItem(i).ToString());
             }
         }
 
         [TestMethod]
         public void NackedSubset_BlockValidTest()
-        { // TODO: Test failed
-            Solver s = new Solver();
+        { 
+            Grid g = new Grid();
             for (byte i = 4; i < 10; i++)
-                s.GetItem(5, 4).RemovePossibleNumber(i);
+                g.GetItem(5, 4).RemovePossibleNumber(i);
 
             for (byte i = 4; i < 10; i++)
-                s.GetItem(4, 6).RemovePossibleNumber(i);
+                g.GetItem(4, 6).RemovePossibleNumber(i);
 
             for (byte i = 3; i < 10; i++) // Some special
-                s.GetItem(6, 6).RemovePossibleNumber(i);
+                g.GetItem(6, 6).RemovePossibleNumber(i);
 
             /**
             * - - -| - - -| - - -| 
@@ -95,10 +98,10 @@ namespace SudokuExpert.Test
             * - - -| - - -| - - -|
             * - - -| - - -| - - -|
             * */
-
+            Solver s = new Solver(g);
             s.NacketSubset();
 
-            var testElements = s.Cells.Where(i => i.Block == 5 && i != s.GetItem(5, 4) && i != s.GetItem(4, 6) && i != s.GetItem(6, 6));
+            var testElements = g.Where(i => i.Block == 5 && i != g.GetItem(5, 4) && i != g.GetItem(4, 6) && i != g.GetItem(6, 6));
             foreach (var element in testElements)
             {
                 if (element.ContainsPossibleNumber(1) || element.ContainsPossibleNumber(2) || element.ContainsPossibleNumber(3))
@@ -106,60 +109,63 @@ namespace SudokuExpert.Test
             }
         }
 
-        [TestMethod]
+        [TestMethod] // TODO: Move
         public void LoadSudokuCSV_ValidValues()
         {
-            Solver s = new Solver();
-            s.LoadSudokuCSV("test-001.csv");
-
+            Grid g = new Grid();
+            g.LoadSudokuCSV("test-001.csv");
         }
 
         [TestMethod]
         public void SimpleSolveRotation_ValidValues_EasyCase_Tagesspiegel()
         {
             // Tagesspiegel.de is the test source. It seems to be to easy!
-            Solver s = new Solver();
-            s.LoadSudokuCSV("test-001.csv");
+            Grid g = new Grid();
+            g.LoadSudokuCSV("test-001.csv");
+            Solver s = new Solver(g);
             s.SimpleSolve();
-            FindDoubles(s);
+            FindDoubles(g);
         }
 
         [TestMethod]
         public void SimpleSolveRotation_ValidValues_MediumCase_Tagesspiegel()
         {
-            Solver s = new Solver();
-            s.LoadSudokuCSV("test-002.csv");
+            Grid g = new Grid();
+            g.LoadSudokuCSV("test-002.csv");
+            Solver s = new Solver(g);
             s.SimpleSolve();
-            FindDoubles(s);
+            FindDoubles(g);
         }
 
         [TestMethod]
         public void SimpleSolveRotation_ValidValues_HardCase_Tagesspiegel()
         {
-            Solver s = new Solver();
-            s.LoadSudokuCSV("test-003.csv");
+            Grid g = new Grid();
+            g.LoadSudokuCSV("test-003.csv");
+            Solver s = new Solver(g);
             s.SimpleSolve();
-            FindDoubles(s);
+            FindDoubles(g);
         }
 
         [TestMethod]
         public void SimpleSolveRotation_ValidValues_VeryHardCase_Tagesspiegel()
         {
             // Tagesspiegel.de is the test source. It seems to be to easy! The programm just need nacked and hidden single.
-            Solver s = new Solver();
-            s.LoadSudokuCSV("test-004.csv");
+            Grid g = new Grid();
+            g.LoadSudokuCSV("test-004.csv");
+            Solver s = new Solver(g);
             s.SimpleSolve();
-            FindDoubles(s);
+            FindDoubles(g);
         }
 
-        private static void FindDoubles(Solver s)
+        private static void FindDoubles(Grid g)
         {
             for (int i = 1; i < 10; i++)
             {
-                if (s.Cells.Exists(si => si.Value == 0))
+                if (g.Any(CellStatus.Unsolved))
                     Assert.Fail("Not Solved");
                 // Find doubles in Row
-                var row = s.Cells.Where(si => si.Row == i);
+                var row = g.GetRow(i);
                 for (int c = 1; c < 10; c++)
                 {
                     var shouldCountOne = row.Where(sco => sco.Value == c);
@@ -168,7 +174,7 @@ namespace SudokuExpert.Test
                 }
 
                 // Find doubles in Column
-                var column = s.Cells.Where(si => si.Row == i);
+                var column = g.GetColumn(i);
                 for (int c = 1; c < 10; c++)
                 {
                     var shouldCountOne = column.Where(sco => sco.Value == c);
@@ -177,7 +183,7 @@ namespace SudokuExpert.Test
                 }
 
                 // Find doubles in Block
-                var block = s.Cells.Where(si => si.Row == i);
+                var block = g.GetBlock(i);
                 for (int c = 1; c < 10; c++)
                 {
                     var shouldCountOne = block.Where(sco => sco.Value == c);
@@ -190,11 +196,10 @@ namespace SudokuExpert.Test
         [TestMethod]
         public void HiddenSubset_ValidValues_SimpleBlockTest()
         {
-            Solver s = new Solver();
-            var block = s.Cells.Where(b => b.Block == 1);
-            foreach (var item in block)
+            Grid g = new Grid();
+            foreach (var item in g.GetBlock(1))
             {
-                if (item == s.GetItem(2, 1) || item == s.GetItem(3, 3))
+                if (item == g.GetItem(2, 1) || item == g.GetItem(3, 3))
                     continue;
                 item.RemovePossibleNumber(1);
                 item.RemovePossibleNumber(4);
@@ -205,44 +210,45 @@ namespace SudokuExpert.Test
                 if (item.Index % 3 == 0)
                     item.RemovePossibleNumber(9);
             }
-
+            Solver s = new Solver(g);
             s.HiddenSubset();
-            Assert.AreEqual(2, s.GetItem(2, 1).PossibleNumbers.Count, 2);
-            Assert.IsTrue(s.GetItem(2, 1).PossibleNumbers.Contains(1));
-            Assert.IsTrue(s.GetItem(2, 1).PossibleNumbers.Contains(4));
-            Assert.AreEqual(2, s.GetItem(3, 3).PossibleNumbers.Count);
-            Assert.IsTrue(s.GetItem(3, 3).PossibleNumbers.Contains(1));
-            Assert.IsTrue(s.GetItem(3, 3).PossibleNumbers.Contains(4));
+            Assert.AreEqual(2, g.GetItem(2, 1).PossibleNumbers.Count, 2);
+            Assert.IsTrue(g.GetItem(2, 1).PossibleNumbers.Contains(1));
+            Assert.IsTrue(g.GetItem(2, 1).PossibleNumbers.Contains(4));
+            Assert.AreEqual(2, g.GetItem(3, 3).PossibleNumbers.Count);
+            Assert.IsTrue(g.GetItem(3, 3).PossibleNumbers.Contains(1));
+            Assert.IsTrue(g.GetItem(3, 3).PossibleNumbers.Contains(4));
 
         }
 
         [TestMethod]
         public void BlockLineInteraction_ValidValues()
         {
-            Solver s = new Solver();
-            s.GetItem(1, 1).Value = 1;
-            s.GetItem(3, 1).Value = 2;
-            s.GetItem(1, 3).Value = 3;
-            s.GetItem(3, 3).Value = 4;
-            s.GetItem(4, 2).Value = 9;
+            Grid g = new Grid();
+            g.GetItem(1, 1).Value = 1;
+            g.GetItem(3, 1).Value = 2;
+            g.GetItem(1, 3).Value = 3;
+            g.GetItem(3, 3).Value = 4;
+            g.GetItem(4, 2).Value = 9;
             for (byte i = 1; i < 4; i++)
-                s.GetItem(i, 2).RemovePossibleNumber(9);
+                g.GetItem(i, 2).RemovePossibleNumber(9);
+            Solver s = new Solver(g);
             s.BlockLineInteraction();
 
-            if (s.Cells.Any(i => i.Column == 2 && i.Block != 1 && i.ContainsPossibleNumber(9)))
+            if (g.Any(i => i.Column == 2 && i.Block != 1 && i.ContainsPossibleNumber(9)))
                 Assert.Fail();
         }
 
         [TestMethod]
         public void BlockBlockInteraction_ValidValues_Vertical()
         {
-            Solver s = new Solver();
-            s.GetItem(3, 1).Value = 1;
-            s.GetItem(3, 2).Value = 2;
-            s.GetItem(4, 3).Value = 9;
-            s.GetItem(3, 7).Value = 3;
-            s.GetItem(3, 8).Value = 4;
-            s.GetItem(4, 9).Value = 9;
+            Grid g = new Grid();
+            g.GetItem(3, 1).Value = 1;
+            g.GetItem(3, 2).Value = 2;
+            g.GetItem(4, 3).Value = 9;
+            g.GetItem(3, 7).Value = 3;
+            g.GetItem(3, 8).Value = 4;
+            g.GetItem(4, 9).Value = 9;
 
             /**
              * - - 1| - - -| - - -| 
@@ -257,21 +263,22 @@ namespace SudokuExpert.Test
              * - - 4| - - -| - - -|
              * - - -| 9 - -| - - -|
              * */
-            s.Cells.ForEach(i => s.NackedSingle(i));
+            Solver s = new Solver(g);
+            g.ForEach(i => s.NackedSingle(i));
             s.BlockBlockInteractions();
-            Assert.IsFalse(s.Cells.Where(i => i.Block == 4 && i.Column < 3).Any(i => i.ContainsPossibleNumber(9)));
+            Assert.IsFalse(g.Where(i => i.Block == 4 && i.Column < 3).Any(i => i.ContainsPossibleNumber(9)));
         }
 
         [TestMethod]
         public void BlockBlockInteraction_ValidValues_Horizontal()
         {
-            Solver s = new Solver();
-            s.GetItem(1, 7).Value = 1;
-            s.GetItem(2, 7).Value = 2;
-            s.GetItem(3, 6).Value = 9;
-            s.GetItem(7, 7).Value = 3;
-            s.GetItem(8, 7).Value = 4;
-            s.GetItem(9, 4).Value = 9;
+            Grid g = new Grid();
+            g.GetItem(1, 7).Value = 1;
+            g.GetItem(2, 7).Value = 2;
+            g.GetItem(3, 6).Value = 9;
+            g.GetItem(7, 7).Value = 3;
+            g.GetItem(8, 7).Value = 4;
+            g.GetItem(9, 4).Value = 9;
 
             /**
              * - - -| - - -| - - -| 
@@ -286,22 +293,23 @@ namespace SudokuExpert.Test
              * - - -| T T T| - - -|
              * - - -| T T T| - - -|
              * */
-            s.Cells.ForEach(i => s.NackedSingle(i));
+            Solver s = new Solver(g);
+            g.ForEach(i => s.NackedSingle(i));
             s.BlockBlockInteractions();
-            Assert.IsFalse(s.Cells.Where(i => i.Block == 8 && i.Row > 7).Any(i => i.ContainsPossibleNumber(9)));
-            Assert.IsTrue(s.Cells.Where(i => i.Row < 6 && i.Column < 8 && i.Column != 3 && i.Row != 4).Any(i => i.ContainsPossibleNumber(9)));
+            Assert.IsFalse(g.Where(i => i.Block == 8 && i.Row > 7).Any(i => i.ContainsPossibleNumber(9)));
+            Assert.IsTrue(g.Where(i => i.Row < 6 && i.Column < 8 && i.Column != 3 && i.Row != 4).Any(i => i.ContainsPossibleNumber(9)));
         }
 
         [TestMethod]
         public void BlockBlockInteraction_BlocksWithNoImpact()
         {
-            Solver s = new Solver();
-            s.GetItem(1, 1).Value = 1;
-            s.GetItem(2, 1).Value = 2;
-            s.GetItem(3, 6).Value = 9;
-            s.GetItem(7, 7).Value = 3;
-            s.GetItem(8, 7).Value = 4;
-            s.GetItem(9, 4).Value = 9;
+            Grid g = new Grid();
+            g.GetItem(1, 1).Value = 1;
+            g.GetItem(2, 1).Value = 2;
+            g.GetItem(3, 6).Value = 9;
+            g.GetItem(7, 7).Value = 3;
+            g.GetItem(8, 7).Value = 4;
+            g.GetItem(9, 4).Value = 9;
 
             /**
              * 1 2 -| - - -| - - -| 
@@ -316,9 +324,10 @@ namespace SudokuExpert.Test
              * - - -| - - -| - - -|
              * - - -| - - -| - - -|
              * */
-            s.Cells.ForEach(i => s.NackedSingle(i));
+            Solver s = new Solver(g);
+            g.ForEach(i => s.NackedSingle(i));
             s.BlockBlockInteractions(1,9);
-            Assert.IsTrue(s.Cells.Where(i => i.Column != 3 && i.Column != 9 && i.Row != 4 && i.Row != 6 && i.Value == 0).Any(i => i.ContainsPossibleNumber(9)));
+            Assert.IsTrue(g.Where(i => i.Column != 3 && i.Column != 9 && i.Row != 4 && i.Row != 6 && i.Value == 0).Any(i => i.ContainsPossibleNumber(9)));
         }
     }
 }

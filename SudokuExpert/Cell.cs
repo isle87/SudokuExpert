@@ -6,7 +6,16 @@ using System.Threading.Tasks;
 
 namespace SudokuExpert
 {
-    public class SudokuCell
+    /// <summary>
+    /// A cell is just one tile of a Sudoku grid with just one value.
+    /// </summary>
+    /// <remarks>
+    /// <list type="bullet">
+    /// <listheader term="Definitions"/>
+    /// <item term="Line">A line is a horizontal or vertical line with exact 9 cells.</item>
+    /// </list>
+    /// </remarks>
+    public class Cell
     {
         private byte _Column;
 
@@ -14,18 +23,32 @@ namespace SudokuExpert
 
         private byte _Value;
 
-        public SudokuCell()
+        /// <summary>
+        /// Set up a cell.
+        /// </summary>
+        public Cell()
         {
             SetUpPossibleNumbers();
         }
 
-        public SudokuCell(byte value, int index) : this()
+        /// <summary>
+        /// Set up a cell with a value on a index.
+        /// </summary>
+        /// <param name="value">The <see cref="Value"/></param>
+        /// <param name="index">The <see cref="Index"/></param>
+        public Cell(byte value, int index) : this()
         {
             Value = value;
             SetColumnAndRow(index);
         }
 
-        public SudokuCell(byte value, byte column, byte row) : this()
+        /// <summary>
+        /// Set up a cell with a value on the position defines with the column and row.
+        /// </summary>
+        /// <param name="value">The <see cref="Value"/></param>
+        /// <param name="column">The <see cref="Column"/></param>
+        /// <param name="row">The <see cref="Row"/></param>
+        public Cell(byte value, byte column, byte row) : this()
         {
             Value = value;
             Row = row;
@@ -35,7 +58,7 @@ namespace SudokuExpert
         public event EventHandler SudokuItemSolved;
 
         /// <summary>
-        /// Returns the block id. A block is a 3 by 3 grid.
+        /// Returns the block id. A block is a 3 by 3 cell grid. A block cannot be a part of another block.
         /// </summary>
         public byte Block
         {
@@ -134,6 +157,9 @@ namespace SudokuExpert
             return PossibleNumbers.Exists(x => x == number);
         }
 
+        /// <summary>
+        /// Occure if the cell is solved.
+        /// </summary>
         protected virtual void OnSudokuItemSolved()
         {
             if (Value != 0)
@@ -163,12 +189,24 @@ namespace SudokuExpert
             }
         }
 
+        /// <summary>
+        /// Remove a possible number from <see cref="PossibleNumbers"/>
+        /// </summary>
+        /// <param name="number">The number who should remove from <see cref="PossibleNumbers"/></param>
         public void RemovePossibleNumber(byte number)
         {
             if (IsSolved)
                 return;
             if (PossibleNumbers.Remove(number))
+            {
                 CheckPossibleNumbers();
+                OnPossibleNumbersChanged(number);
+            }
+        }
+
+        private void OnPossibleNumbersChanged(byte number)
+        {
+            throw new NotImplementedException();
         }
 
         private void CheckPossibleNumbers()
@@ -180,6 +218,10 @@ namespace SudokuExpert
             }
         }
 
+        /// <summary>
+        /// Returns the Column, Row and Value.
+        /// </summary>
+        /// <returns></returns>
         public override string ToString()
         {
             return "C: " + Column.ToString() + "| R: " + Row.ToString() + " | V: " + Value.ToString();
