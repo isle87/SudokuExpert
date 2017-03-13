@@ -55,7 +55,14 @@ namespace SudokuExpert
             Column = column;
         }
 
+        /// <summary>
+        /// Occurs wheather the <see cref="Cell"/> has been solved.
+        /// </summary>
         public event EventHandler SudokuItemSolved;
+        /// <summary>
+        /// Occurs wheather the <see cref="Cell.PossibleNumbers"/> has been changed.
+        /// </summary>
+        public event EventHandler<PossibleNumberChangedEventArgs> PossibleNumberChanged;
 
         /// <summary>
         /// Returns the block id. A block is a 3 by 3 cell grid. A block cannot be a part of another block.
@@ -166,6 +173,7 @@ namespace SudokuExpert
             {
                 SudokuItemSolved?.Invoke(this, EventArgs.Empty);
                 PossibleNumbers.Clear();
+                OnPossibleNumbersChanged(null);
             }
         }
 
@@ -204,9 +212,13 @@ namespace SudokuExpert
             }
         }
 
-        private void OnPossibleNumbersChanged(byte number)
+        /// <summary>
+        /// Called when a number in <seealso cref="PossibleNumbers"/> have been removed.
+        /// </summary>
+        /// <param name="number"></param>
+        protected void OnPossibleNumbersChanged(byte? number)
         {
-            throw new NotImplementedException();
+            PossibleNumberChanged?.Invoke(this, new PossibleNumberChangedEventArgs((byte)number));
         }
 
         private void CheckPossibleNumbers()
@@ -225,6 +237,25 @@ namespace SudokuExpert
         public override string ToString()
         {
             return "C: " + Column.ToString() + "| R: " + Row.ToString() + " | V: " + Value.ToString();
+        }
+    }
+
+    /// <summary>
+    /// Event Arguments for <see cref="Cell.PossibleNumbers"/>
+    /// </summary>
+    public class PossibleNumberChangedEventArgs : EventArgs
+    {
+        /// <summary>
+        /// Contains the Number. If the number is <code>null</code> more than one number has been changed.
+        /// </summary>
+        public int? Number { get; private set; }
+        /// <summary>
+        /// Creates a new PossibleNumberChangedEventArgs
+        /// </summary>
+        /// <param name="number">The Number</param>
+        public PossibleNumberChangedEventArgs(int number)
+        {
+            Number = number;
         }
     }
 }

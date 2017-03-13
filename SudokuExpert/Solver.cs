@@ -274,27 +274,40 @@ namespace SudokuExpert
         /// <summary>
         /// Execute the nacked subset strategie over the whole puzzle.
         /// </summary>
-        public void NacketSubset()
+        public void NackedSubset()
         {
             foreach (var item in Grid.Where(CellStatus.Unsolved))
                 NackedSubset(item);
         }
 
         // TODO Rewrite this methods
-        public void SimpleSolve()
+        /// <summary>
+        /// Solves the given <see cref="Grid"/>
+        /// </summary>
+        public void Solve()
         {
-            while (true)
+            bool count;
+            Grid.ForEach(c => c.PossibleNumberChanged += 
+            (s, e) =>
             {
-                SimpleSolveRotation();
+                count = true;
+            });
+
+            do
+            {
+                count = false;
+                SolveRotation();
                 if (!Grid.Any(CellStatus.Unsolved))
                     break;
-            }
+            } while (count);
         }
 
-        public void SimpleSolveRotation()
+        /// <summary>
+        /// One solve rotation. <seealso cref="Solve"/>
+        /// </summary>
+        public void SolveRotation()
         {
             int oldCount = 0;
-
             do
             {
                 oldCount = Grid.Count(CellStatus.Unsolved);
@@ -306,8 +319,10 @@ namespace SudokuExpert
 
             } while (Grid.Count(CellStatus.Unsolved) != oldCount);
 
-            foreach (var item in Grid.Where(CellStatus.Unsolved))
-                NackedSubset(item);
+            NackedSubset();
+            HiddenSubset();
+            BlockLineInteraction();
+            BlockBlockInteractions();
         }
 
         /// <summary>

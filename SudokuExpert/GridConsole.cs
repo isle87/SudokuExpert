@@ -6,10 +6,20 @@ using System.Threading.Tasks;
 
 namespace SudokuExpert
 {
+    /// <summary>
+    /// A class to draw a <see cref="Grid"/> on the console.
+    /// </summary>
     public class GridConsole
     {
+        /// <summary>
+        /// The <see cref="Grid"/>
+        /// </summary>
         public Grid Grid { get; set; }
 
+        /// <summary>
+        /// Creates a <see cref="GridConsole"/>
+        /// </summary>
+        /// <param name="grid">The <see cref="Grid"/></param>
         public GridConsole(Grid grid)
         {
             Grid = grid;

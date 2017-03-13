@@ -39,7 +39,7 @@ namespace SudokuExpert.Test
             g.GetItem(5, 6).Value = 3;
             g.GetItem(6, 8).Value = 1;
             Solver s = new Solver(g);
-            s.SimpleSolveRotation();
+            s.SolveRotation();
             Assert.AreEqual(1, g.GetItem(5, 4).Value);
             int[] check = new int[] { GetIndex(4, 3), GetIndex(5, 4), GetIndex(5, 5), GetIndex(5, 6), GetIndex(6, 8) };
             for (int i = 0; i < g.Count(); i++)
@@ -60,7 +60,7 @@ namespace SudokuExpert.Test
             g.GetItem(1, 1).Value = 3;
             g.GetItem(2, 1).Value = 2;
             Solver s = new Solver(g);
-            s.SimpleSolveRotation();
+            s.SolveRotation();
             Assert.AreEqual(1, g.GetItem(3, 1).Value);
             int[] check = new int[] { GetIndex(4, 3), GetIndex(7, 2), GetIndex(1, 1), GetIndex(2, 1), GetIndex(3, 1) };
             for (int i = 0; i < g.Count(); i++)
@@ -99,7 +99,7 @@ namespace SudokuExpert.Test
             * - - -| - - -| - - -|
             * */
             Solver s = new Solver(g);
-            s.NacketSubset();
+            s.NackedSubset();
 
             var testElements = g.Where(i => i.Block == 5 && i != g.GetItem(5, 4) && i != g.GetItem(4, 6) && i != g.GetItem(6, 6));
             foreach (var element in testElements)
@@ -109,21 +109,14 @@ namespace SudokuExpert.Test
             }
         }
 
-        [TestMethod] // TODO: Move
-        public void LoadSudokuCSV_ValidValues()
-        {
-            Grid g = new Grid();
-            g.LoadSudokuCSV("test-001.csv");
-        }
-
         [TestMethod]
         public void SimpleSolveRotation_ValidValues_EasyCase_Tagesspiegel()
         {
             // Tagesspiegel.de is the test source. It seems to be to easy!
             Grid g = new Grid();
-            g.LoadSudokuCSV("test-001.csv");
+            g.LoadCSV("Resources/test-001.csv");
             Solver s = new Solver(g);
-            s.SimpleSolve();
+            s.Solve();
             FindDoubles(g);
         }
 
@@ -131,9 +124,9 @@ namespace SudokuExpert.Test
         public void SimpleSolveRotation_ValidValues_MediumCase_Tagesspiegel()
         {
             Grid g = new Grid();
-            g.LoadSudokuCSV("test-002.csv");
+            g.LoadCSV("Resources/test-002.csv");
             Solver s = new Solver(g);
-            s.SimpleSolve();
+            s.Solve();
             FindDoubles(g);
         }
 
@@ -141,9 +134,9 @@ namespace SudokuExpert.Test
         public void SimpleSolveRotation_ValidValues_HardCase_Tagesspiegel()
         {
             Grid g = new Grid();
-            g.LoadSudokuCSV("test-003.csv");
+            g.LoadCSV("Resources/test-003.csv");
             Solver s = new Solver(g);
-            s.SimpleSolve();
+            s.Solve();
             FindDoubles(g);
         }
 
@@ -152,10 +145,30 @@ namespace SudokuExpert.Test
         {
             // Tagesspiegel.de is the test source. It seems to be to easy! The programm just need nacked and hidden single.
             Grid g = new Grid();
-            g.LoadSudokuCSV("test-004.csv");
+            g.LoadCSV("Resources/test-004.csv");
             Solver s = new Solver(g);
-            s.SimpleSolve();
+            s.Solve();
             FindDoubles(g);
+        }
+
+        [TestMethod]
+        public void SimpleSolveRotation_ValidValues_VeryHardCase_Sudokuknacker_1()
+        {
+            Grid g = new Grid();
+            g.LoadCSV("Resources/test-005.csv");
+            Solver s = new Solver(g);
+            s.Solve();
+            FindDoubles(g);
+        }
+
+        [TestMethod]
+        public void SimpleSolveRotation_UnsolveableGrid()
+        {
+            Grid g = new Grid();
+            g.LoadCSV("Resources/test-unsolvable.csv");
+            Solver s = new Solver(g);
+            s.Solve();
+            Assert.IsTrue(g.Where(c => c.Row < 9).All(c => !c.IsSolved));
         }
 
         private static void FindDoubles(Grid g)
